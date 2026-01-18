@@ -251,12 +251,12 @@ textarea {
 .canvas-element {
     position: absolute;
     user-select: none;
-    padding: 4px;
     box-sizing: border-box;
 }
 
 .selected {
     outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 /* Resize Handles */
@@ -334,13 +334,11 @@ textarea {
     height: 100%;
     min-width: 20px;
     min-height: 20px;
-    white-space: pre-wrap;
-    word-break: break-all;
+    white-space: pre;
 }
 
 .text-element {
-    white-space: pre-wrap;
+    white-space: pre;
     user-select: none;
     pointer-events: none;
-    word-break: break-all;
 }

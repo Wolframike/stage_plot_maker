@@ -84,33 +84,43 @@ function addElement(type) {
     const centerX = (vRect.left + vRect.width / 2 - cRect.left) / currentScale;
     const centerY = (vRect.top + vRect.height / 2 - cRect.top) / currentScale;
 
-    el.style.left = `${centerX - 40}px`;
-    el.style.top = `${centerY - 40}px`;
-
+    // Use dataset to store rotation
     el.dataset.rotation = "0";
     el.dataset.type = type;
 
     let content;
+    let initialWidth = 60;
+    let initialHeight = 60;
+
     switch (type) {
         case 'person':
-            el.style.width = '60px';
-            el.style.height = '60px';
+            initialWidth = 60;
+            initialHeight = 60;
             content = createPersonIcon();
             break;
         case 'mic':
-            el.style.width = '60px';
-            el.style.height = '60px';
+            initialWidth = 60;
+            initialHeight = 60;
             content = createMicIcon();
             break;
         case 'square':
-            el.style.width = '90px';
-            el.style.height = '75px';
+            initialWidth = 90;
+            initialHeight = 75;
             content = createSquareIcon("");
+            el.dataset.rawText = "";
             break;
         case 'text':
+            initialWidth = 100; // Default width for text label
+            initialHeight = 30;
             content = createTextElement();
+            el.dataset.rawText = "TEXT";
             break;
     }
+
+    el.style.width = `${initialWidth}px`;
+    el.style.height = `${initialHeight}px`;
+    el.style.left = `${centerX - initialWidth / 2}px`;
+    el.style.top = `${centerY - initialHeight / 2}px`;
 
     el.appendChild(content);
     canvas.appendChild(el);
@@ -304,7 +314,10 @@ fontSizeInput.addEventListener('input', (e) => {
 contentInput.addEventListener('input', (e) => {
     if (selectedElement) {
         const inner = selectedElement.querySelector('.text-element, .square-element');
-        if (inner) inner.textContent = e.target.value;
+        if (inner) {
+            inner.textContent = e.target.value;
+            selectedElement.dataset.rawText = e.target.value;
+        }
     }
 });
 
@@ -324,9 +337,7 @@ function setZoom(scale) {
     zoomContainer.style.transform = `scale(${currentScale})`;
 }
 
-document.getElementById('zoom-in').addEventListener('click', () => setZoom(currentScale + 0.05));
-document.getElementById('zoom-out').addEventListener('click', () => setZoom(currentScale - 0.05));
-document.getElementById('zoom-reset').addEventListener('click', () => setZoom(1.0));
+document.getElementById('zoom-reset')?.addEventListener('click', () => setZoom(1.0));
 
 // Pinch/Scroll Zoom
 window.addEventListener('wheel', (e) => {
@@ -372,10 +383,13 @@ async function downloadPNG() {
         const elements = canvas.querySelectorAll('.canvas-element');
         for (const el of elements) {
             const type = el.dataset.type;
+
+            // Use offset properties to get actual rendered size
+            const width = el.offsetWidth * scale;
+            const height = el.offsetHeight * scale;
             const x = parseFloat(el.style.left) * scale;
             const y = parseFloat(el.style.top) * scale;
-            const width = parseFloat(el.style.width) * scale;
-            const height = parseFloat(el.style.height) * scale;
+
             const rotation = parseFloat(el.dataset.rotation || 0) * (Math.PI / 180);
 
             ctx.save();
@@ -386,13 +400,15 @@ async function downloadPNG() {
                 const svg = el.querySelector('svg');
                 const svgData = new XMLSerializer().serializeToString(svg);
                 const img = new Image();
-                // Ensure SVG uses black strokes for export
                 const processedSvg = svgData.replace(/currentColor/g, 'black');
                 img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(processedSvg)));
                 await new Promise(r => img.onload = r);
                 ctx.drawImage(img, -width / 2, -height / 2, width, height);
             } else if (type === 'square') {
                 const inner = el.querySelector('.square-element');
+                const compStyle = window.getComputedStyle(inner);
+                const fSize = parseFloat(compStyle.fontSize) * scale;
+
                 // Draw Box
                 ctx.lineWidth = 2 * scale;
                 ctx.strokeStyle = 'black';
@@ -400,29 +416,32 @@ async function downloadPNG() {
 
                 // Draw Text
                 ctx.fillStyle = 'black';
-                const fSize = (parseInt(inner.style.fontSize) || 14) * scale;
                 ctx.font = `bold ${fSize}px "Inter", "Noto Sans JP", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                const lines = inner.textContent.split('\n');
+                const rawText = el.dataset.rawText || inner.textContent;
+                const lines = rawText.split(/\r?\n/);
                 const lineHeight = fSize * 1.2;
                 const startY = -((lines.length - 1) * lineHeight) / 2;
                 lines.forEach((line, i) => {
-                    ctx.fillText(line, 0, startY + (i * lineHeight));
+                    ctx.fillText(line.trim(), 0, startY + (i * lineHeight));
                 });
             } else if (type === 'text') {
                 const inner = el.querySelector('.text-element');
+                const compStyle = window.getComputedStyle(inner);
+                const fSize = parseFloat(compStyle.fontSize) * scale;
+
                 ctx.fillStyle = 'black';
-                const fSize = (parseInt(inner.style.fontSize) || 15) * scale;
                 ctx.font = `bold ${fSize}px "Inter", "Noto Sans JP", sans-serif`;
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'top';
 
-                const lines = inner.textContent.split('\n');
+                const rawText = el.dataset.rawText || inner.textContent;
+                const lines = rawText.split(/\r?\n/);
                 const lineHeight = fSize * 1.2;
                 lines.forEach((line, i) => {
-                    ctx.fillText(line, -width / 2, -height / 2 + (i * lineHeight));
+                    ctx.fillText(line.trim(), -width / 2, -height / 2 + (i * lineHeight));
                 });
             }
             ctx.restore();
