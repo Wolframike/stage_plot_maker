@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stage Plot Maker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <aside id="toolbar">
+            <div class="brand">
+                <h1>Stage Plot</h1>
+            </div>
+
+            <section class="tools">
+                <h3>Elements</h3>
+                <div class="tool-grid">
+                    <button id="add-person" class="tool-btn" title="Add Person">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" stroke-width="4" />
+                        </svg>
+                        <span>Person</span>
+                    </button>
+                    <button id="add-mic" class="tool-btn" title="Add Mic">
+                        <svg viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" stroke-width="4" />
+                            <path d="M50 100 L50 0 M42 12 L50 0 L58 12" fill="none" stroke="currentColor"
+                                stroke-width="4" stroke-linecap="round" />
+                        </svg>
+                        <span>Mic</span>
+                    </button>
+                    <button id="add-square" class="tool-btn" title="Add Square (Amp/KB)">
+                        <svg viewBox="0 0 100 100">
+                            <rect x="30" y="30" width="40" height="40" fill="none" stroke="currentColor"
+                                stroke-width="3" />
+                            <text x="50" y="55" font-size="12" text-anchor="middle" fill="currentColor">TXT</text>
+                        </svg>
+                        <span>Box</span>
+                    </button>
+                    <button id="add-text" class="tool-btn" title="Add Text">
+                        <svg viewBox="0 0 100 100">
+                            <text x="50" y="60" font-size="24" text-anchor="middle" font-weight="bold"
+                                fill="currentColor">A</text>
+                        </svg>
+                        <span>Text</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="zoom-controls">
+                <h3>Zoom</h3>
+                <div class="tool-grid">
+                    <button id="zoom-in" class="secondary-btn" title="Zoom In">+</button>
+                    <button id="zoom-out" class="secondary-btn" title="Zoom Out">-</button>
+                    <button id="zoom-reset" class="secondary-btn">Reset</button>
+                </div>
+            </section>
+
+            <section id="properties" class="hidden">
+                <h3>Properties</h3>
+                <div class="prop-group">
+                    <label>Rotate</label>
+                    <input type="range" id="rotate-slider" min="0" max="360" value="0">
+                </div>
+                <div class="prop-group" id="font-size-group">
+                    <label>Font Size</label>
+                    <input type="number" id="font-size-input" min="8" max="72" value="16">
+                </div>
+                <div class="prop-group" id="content-group">
+                    <label>Content</label>
+                    <textarea id="content-input" placeholder="Enter text..." rows="3"></textarea>
+                </div>
+                <button id="delete-btn" class="danger-btn">Delete</button>
+            </section>
+        </aside>
+
+        <main id="viewport">
+            <div id="zoom-container">
+                <div id="canvas">
+                    <!-- Objects will be rendered here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

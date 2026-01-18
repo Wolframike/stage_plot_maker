@@ -1,0 +1,346 @@
+:root {
+    --bg-color: #f8fafc;
+    --sidebar-bg: #ffffff;
+    --canvas-bg: #ffffff;
+    --accent-color: #2563eb;
+    --accent-hover: #1d4ed8;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --danger-color: #ef4444;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+}
+
+#app {
+    display: flex;
+    height: 100vh;
+}
+
+/* Toolbar Style */
+#toolbar {
+    width: 320px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.02);
+    z-index: 10;
+}
+
+.brand {
+    margin-bottom: 2rem;
+}
+
+.brand h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--accent-color);
+}
+
+.brand p {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+h3 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tool-btn:hover {
+    border-color: var(--accent-color);
+    background-color: #eff6ff;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.tool-btn svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.5rem;
+}
+
+.tool-btn span {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Properties Section */
+#properties {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+#properties.hidden,
+.hidden {
+    display: none;
+}
+
+.prop-group {
+    margin-bottom: 1rem;
+}
+
+.prop-group label {
+    display: block;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+input[type="number"],
+textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.danger-btn {
+    width: 100%;
+    padding: 0.625rem;
+    background-color: #fff;
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.danger-btn:hover {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+/* Actions Section */
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.primary-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.primary-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.secondary-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.secondary-btn:hover {
+    background-color: #f1f5f9;
+}
+
+/* Viewport and Zoom Container */
+#viewport {
+    flex-grow: 1;
+    overflow: auto;
+    background-color: #cbd5e1;
+    position: relative;
+    cursor: grab;
+}
+
+#viewport.dragging {
+    cursor: grabbing;
+}
+
+#zoom-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 5000px;
+    /* Explicit massive width */
+    height: 5000px;
+    /* Explicit massive height */
+    transform-origin: center center;
+    transition: transform 0.15s ease-out;
+}
+
+#canvas {
+    width: 800px;
+    height: 1131px;
+    background-color: #ffffff;
+    background-image: url('template.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    cursor: crosshair;
+}
+
+.canvas-hint {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* Canvas Element and Selection */
+.canvas-element {
+    position: absolute;
+    user-select: none;
+    padding: 4px;
+    box-sizing: border-box;
+}
+
+.selected {
+    outline: 2px solid var(--accent-color);
+}
+
+/* Resize Handles */
+.resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border: 2px solid var(--accent-color);
+    border-radius: 50%;
+    z-index: 5;
+    display: none;
+    /* Hidden by default */
+}
+
+.selected .resize-handle {
+    display: block;
+    /* Show only when selected */
+}
+
+.resize-handle.nw {
+    top: -5px;
+    left: -5px;
+    cursor: nw-resize;
+}
+
+.resize-handle.ne {
+    top: -5px;
+    right: -5px;
+    cursor: ne-resize;
+}
+
+.resize-handle.sw {
+    bottom: -5px;
+    left: -5px;
+    cursor: sw-resize;
+}
+
+.resize-handle.se {
+    bottom: -5px;
+    right: -5px;
+    cursor: se-resize;
+}
+
+.resize-handle.n {
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: n-resize;
+}
+
+.resize-handle.s {
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: s-resize;
+}
+
+.resize-handle.e {
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: e-resize;
+}
+
+.resize-handle.w {
+    left: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: w-resize;
+}
+
+.square-element {
+    width: 100%;
+    height: 100%;
+    min-width: 20px;
+    min-height: 20px;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.text-element {
+    white-space: pre-wrap;
+    user-select: none;
+    pointer-events: none;
+    word-break: break-all;
+}
