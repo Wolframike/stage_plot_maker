@@ -42,7 +42,7 @@ function createMicIcon() {
     svg.style.height = '100%';
     svg.innerHTML = `
         <circle cx="50" cy="50" r="25" fill="none" stroke="black" stroke-width="4"/>
-        <path d="M50 100 L50 0 M42 12 L50 0 L58 12" fill="none" stroke="black" stroke-width="4" stroke-linecap="round"/>
+        <path d="M50 95 L50 5 M42 16 L50 5 L58 16" fill="none" stroke="black" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
     `;
     return svg;
 }
@@ -342,6 +342,111 @@ document.getElementById('add-person').addEventListener('click', () => addElement
 document.getElementById('add-mic').addEventListener('click', () => addElement('mic'));
 document.getElementById('add-square').addEventListener('click', () => addElement('square'));
 document.getElementById('add-text').addEventListener('click', () => addElement('text'));
+
+// --- Download Logic (Manual High-Res Renderer) ---
+async function downloadPNG() {
+    const scale = 3; // Ultra HD scale factor
+    const w = 800 * scale;
+    const h = 1131 * scale;
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = w;
+    exportCanvas.height = h;
+    const ctx = exportCanvas.getContext('2d');
+
+    try {
+        const downloadBtn = document.getElementById('download-png');
+        downloadBtn.disabled = true;
+        downloadBtn.textContent = 'Rendering...';
+
+        // 1. Draw Background
+        const bg = new Image();
+        bg.src = 'template.png';
+        await new Promise((resolve, reject) => {
+            bg.onload = resolve;
+            bg.onerror = reject;
+        });
+        ctx.drawImage(bg, 0, 0, w, h);
+
+        // 2. Draw Elements
+        const elements = canvas.querySelectorAll('.canvas-element');
+        for (const el of elements) {
+            const type = el.dataset.type;
+            const x = parseFloat(el.style.left) * scale;
+            const y = parseFloat(el.style.top) * scale;
+            const width = parseFloat(el.style.width) * scale;
+            const height = parseFloat(el.style.height) * scale;
+            const rotation = parseFloat(el.dataset.rotation || 0) * (Math.PI / 180);
+
+            ctx.save();
+            ctx.translate(x + width / 2, y + height / 2);
+            ctx.rotate(rotation);
+
+            if (type === 'person' || type === 'mic') {
+                const svg = el.querySelector('svg');
+                const svgData = new XMLSerializer().serializeToString(svg);
+                const img = new Image();
+                // Ensure SVG uses black strokes for export
+                const processedSvg = svgData.replace(/currentColor/g, 'black');
+                img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(processedSvg)));
+                await new Promise(r => img.onload = r);
+                ctx.drawImage(img, -width / 2, -height / 2, width, height);
+            } else if (type === 'square') {
+                const inner = el.querySelector('.square-element');
+                // Draw Box
+                ctx.lineWidth = 2 * scale;
+                ctx.strokeStyle = 'black';
+                ctx.strokeRect(-width / 2, -height / 2, width, height);
+
+                // Draw Text
+                ctx.fillStyle = 'black';
+                const fSize = (parseInt(inner.style.fontSize) || 14) * scale;
+                ctx.font = `bold ${fSize}px "Inter", "Noto Sans JP", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                const lines = inner.textContent.split('\n');
+                const lineHeight = fSize * 1.2;
+                const startY = -((lines.length - 1) * lineHeight) / 2;
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, 0, startY + (i * lineHeight));
+                });
+            } else if (type === 'text') {
+                const inner = el.querySelector('.text-element');
+                ctx.fillStyle = 'black';
+                const fSize = (parseInt(inner.style.fontSize) || 15) * scale;
+                ctx.font = `bold ${fSize}px "Inter", "Noto Sans JP", sans-serif`;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+
+                const lines = inner.textContent.split('\n');
+                const lineHeight = fSize * 1.2;
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, -width / 2, -height / 2 + (i * lineHeight));
+                });
+            }
+            ctx.restore();
+        }
+
+        // 3. Trigger Download
+        const link = document.createElement('a');
+        link.download = `stage_plot_${new Date().getTime()}.png`;
+        link.href = exportCanvas.toDataURL('image/png', 1.0);
+        link.click();
+
+        downloadBtn.textContent = 'Download PNG';
+        downloadBtn.disabled = false;
+
+    } catch (err) {
+        console.error('Export failed:', err);
+        alert('High-resolution export failed. This is usually due to browser security restrictions on local files. Testing on a web server will fix this.');
+        const btn = document.getElementById('download-png');
+        btn.disabled = false;
+        btn.textContent = 'Download PNG';
+    }
+}
+
+document.getElementById('download-png').addEventListener('click', downloadPNG);
 
 // Initial centering
 window.addEventListener('load', () => {
